@@ -5,8 +5,7 @@ AWS.config.update({ region: "us-east-1" });
 //define the dynamobdb (this is our database)
 const dynamobdb = new AWS.DynamoDB.DocumentClient();
 //grab the dynamotable from AWS (dynamodb thrives off async functions)
-const dynamoTable = "lionheart";
-const dynamoBidTable = "bidding"
+const dynamoTable = "apprenticeUsers";
 
 let util = require("../utils/response");
 

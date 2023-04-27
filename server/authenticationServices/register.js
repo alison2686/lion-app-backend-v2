@@ -5,7 +5,7 @@ AWS.config.update({ region: "us-east-1" });
 //define the dynamobdb (this is our database)
 const dynamobdb = new AWS.DynamoDB.DocumentClient();
 //grab the dynamotable from AWS (dynamodb thrives off async functions)
-const dynamoTable = "lionheart";
+const dynamoTable = "apprenticeUsers";
 //bcrypt to ensure that we do not save password in plain text
 const bcrypt = require("bcryptjs");
 //our updateResponse in the util
@@ -43,9 +43,7 @@ const register = async (user) => {
   const dynamodbUser = await getUser(email, firstName, lastName);
   if (
     dynamodbUser &&
-    dynamodbUser.email &&
-    dynamodbUser.firstName &&
-    dynamodbUser.lastName
+    dynamodbUser.email 
   ) {
     return util.updateResponse
       (401,

@@ -30,6 +30,20 @@ const register = async (user) => {
   const stripeID = "";
   const currentBidAmount = 15
   const activeStatus = false
+
+  const dynamodbUser = await getUser(email);
+  if (
+    dynamodbUser
+  ) {
+    return util.updateResponse
+      (401,
+      {
+        email: email,
+        message: "User already exists under this email. Please choose different credentials.",
+      });
+  }
+
+
   //401 error - client request is incomplete because there are not valid auth credentials / do NOT return a 404 status error or else it will say "Not Found"
   //if a user does not filled out below fields, they will be directed to complete this sections
   if (!firstName || !lastName || !email || !password) {
@@ -40,17 +54,7 @@ const register = async (user) => {
       });
   }
   //if this user exists in our database (same email, first, and last name), they cannot sign up again using the same credentials (we do not want multiple of the same user)
-  const dynamodbUser = await getUser(email, firstName, lastName);
-  if (
-    dynamodbUser &&
-    dynamodbUser.email 
-  ) {
-    return util.updateResponse
-      (401,
-      {
-        message: "User already exists. Please choose different credentials.",
-      });
-  }
+
 
   //bcrypt the passwords for the user - the trim to to clean up white spaces
   const bcryptPassword = bcrypt.hashSync(password.trim(), 10);
@@ -108,7 +112,7 @@ const getUser = async (email) => {
     .promise()
     //once it is fulfilled, it moves on to the return
     .then((res) => {
-      return res.Key;
+      return res.Item;
     })
     //we need to catch the error if any
     .catch((err) => console.log(err, "<-- Error getting the user."));

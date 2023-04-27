@@ -30,7 +30,17 @@ const registerCompany = async (company) => {
   const description = company.description;
   const userID = crypto.randomBytes(16).toString("hex")
   
-
+  const dynamodbCompanyUser = await getCompany(email);
+  if (
+    dynamodbCompanyUser 
+  ) {
+    return util.updateResponse
+      (401,
+      {
+        email: email,
+        message: "Company already exists under this email. Please choose different credentials.",
+      });
+  }
 
   //401 error - client request is incomplete because there are not valid auth credentials / do NOT return a 404 status error or else it will say "Not Found"
   //if a user does not filled out below fields, they will be directed to complete this sections
@@ -42,19 +52,7 @@ const registerCompany = async (company) => {
       });
   }
   //if this user exists in our database (same email, first, and last name), they cannot sign up again using the same credentials (we do not want multiple of the same user)
-  const dynamodbCompanyUser = await getCompany(email, firstName, lastName);
-  if (
-    dynamodbCompanyUser &&
-    dynamodbCompanyUser.email &&
-    dynamodbCompanyUser.firstName &&
-    dynamodbCompanyUser.lastName
-  ) {
-    return util.updateResponse
-      (401,
-      {
-        message: "Company already exists. Please choose different credentials.",
-      });
-  }
+
 
   //bcrypt the passwords for the user - the trim to to clean up white spaces
   const bcryptPassword = bcrypt.hashSync(password.trim(), 10);
@@ -111,7 +109,7 @@ const getCompany = async (email) => {
     .promise()
     //once it is fulfilled, it moves on to the return
     .then((res) => {
-      return res.Key;
+      return res.Item;
     })
     //we need to catch the error if any
     .catch((err) => console.log(err, "<-- Error getting the company."));

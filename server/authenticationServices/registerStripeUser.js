@@ -1,27 +1,25 @@
 //define AWS
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 //update the region associated with the account on AWS
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({ region: 'us-east-1' });
 //define the dynamobdb (this is our database)
 const dynamobdb = new AWS.DynamoDB.DocumentClient();
 //grab the dynamotable from AWS (dynamodb thrives off async functions)
-const dynamoTable = "apprenticeUsers";
+const dynamoTable = 'apprenticeUsers';
 
-let util = require("../utils/response");
+let util = require('../utils/response');
 
 const registerStripeUser = async (stripeBody) => {
   //NEED TO ADD .toLowercase check to make sure searching exact email, regex expressions
   //NEED TO ADD update apprentice profile status (NOT BID STATUS)
-  const activeStatus = true
+  const activeStatus = true;
   const email = stripeBody.email;
-  const stripe = require("stripe")(
-    `sk_test_51GvqxNE4rKR2mTzgerNRrKNzy1INkzh0FlrtuYx23On86l5SAVR2ufnR9OloQnAtMV2tHik9aA7eZhgJEWWx3Heh005OZJYqxI`
-  );
+  const stripe = require('stripe')(process.env.STRIPE_KEY);
 
   // This function creates a blank custom Stripe account
   const account = await stripe.accounts.create({
-    type: "custom",
-    country: "US",
+    type: 'custom',
+    country: 'US',
     capabilities: {
       card_payments: { requested: true },
       transfers: { requested: true },
@@ -31,10 +29,10 @@ const registerStripeUser = async (stripeBody) => {
   // and makes an onboarding link for it
   const accountLink = await stripe.accountLinks.create({
     account: `${account.id}`,
-    refresh_url: "https://google.com",
-    return_url: "https://google.com",
-    type: "account_onboarding",
-    collect: "eventually_due",
+    refresh_url: 'https://google.com',
+    return_url: 'https://google.com',
+    type: 'account_onboarding',
+    collect: 'eventually_due',
   });
 
   // This function grabs the requestBody (which should be the users email)
@@ -55,7 +53,7 @@ const registerStripeUser = async (stripeBody) => {
         return res.Item;
       })
       //we need to catch the error if any
-      .catch((err) => console.log(err, "<-- Error getting the user."));
+      .catch((err) => console.log(err, '<-- Error getting the user.'));
   };
 
   const dynamoUser = await getUser(email);
@@ -71,11 +69,11 @@ const registerStripeUser = async (stripeBody) => {
       Key: {
         email: email,
       },
-      UpdateExpression: "set stripeID = :stripeID",
+      UpdateExpression: 'set stripeID = :stripeID',
       ExpressionAttributeValues: {
-        ":stripeID": stripeID,
+        ':stripeID': stripeID,
       },
-      ReturnValues: "UPDATED_NEW",
+      ReturnValues: 'UPDATED_NEW',
     };
     return await dynamobdb
       .update(params)
@@ -83,11 +81,10 @@ const registerStripeUser = async (stripeBody) => {
       .then((res) => {
         return res.Item;
       })
-      .catch((err) => console.log(err, "<- Error updating user"));
+      .catch((err) => console.log(err, '<- Error updating user'));
   };
 
   const userUpdated = await updateUser(userEmail, stripeID);
-
 
   //NEED FUNCTION THAT WILL CREATE BIDDING PROFILE FOR STRIPE USER
   //MAY NEED THIS TO BE ON A SEPERATE ENDPOINT IN FUTURE
@@ -100,7 +97,7 @@ const registerStripeUser = async (stripeBody) => {
   //     "paymentId": ""
   //   },
   //   bidStatus: 'Closed',  //Change this state when user enters a contract
-    
+
   // }
 
   // const createBidProfile = async(user) => {

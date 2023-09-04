@@ -1,20 +1,18 @@
 // Define AWS
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 // Update the region associated with the account on AWS
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({ region: 'us-east-1' });
 // Define the dynamobdb (this is our database)
 const dynamobdb = new AWS.DynamoDB.DocumentClient();
 // Grab the dynamotable from AWS (dynamodb thrives off async functions)
-const dynamoTable = "bidding";
+const dynamoTable = 'bidding';
 // Bcrypt to ensure that we do not save password in plain text
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcryptjs');
 // Our updateResponse in the util
-let util = require("../utils/response");
+let util = require('../utils/response');
 
 const getApprentice = async (apprentice) => {
-  const stripe = require("stripe")(
-    `sk_test_51GvqxNE4rKR2mTzgerNRrKNzy1INkzh0FlrtuYx23On86l5SAVR2ufnR9OloQnAtMV2tHik9aA7eZhgJEWWx3Heh005OZJYqxI`
-  );
+  const stripe = require('stripe')(`${process.env.STRIPE_KEY}`);
   const email = apprentice.email;
   // This function will return a single apprentice profile based on email
   const getUser = async (email) => {
@@ -22,7 +20,7 @@ const getApprentice = async (apprentice) => {
       TableName: dynamoTable,
       Key: {
         owner: email,
-      }
+      },
     };
     return await dynamobdb
       .get(parameters)
@@ -33,19 +31,17 @@ const getApprentice = async (apprentice) => {
         return res.Item;
       })
       // We need to catch the error if any
-      .catch((err) => console.log(err, "<-- Error getting the user."));
+      .catch((err) => console.log(err, '<-- Error getting the user.'));
   };
 
   const singleApprentice = await getUser(email);
   const apprenticeStripeId = singleApprentice.stripeID;
 
-      const account = await stripe.accounts.retrieve(
-        apprenticeStripeId
-      );
+  const account = await stripe.accounts.retrieve(apprenticeStripeId);
 
   return util.updateResponse(200, {
     singleApprentice: singleApprentice,
-    account: account.payouts_enabled
+    account: account.payouts_enabled,
   });
 };
 

@@ -29,8 +29,8 @@ const registerStripeUser = async (stripeBody) => {
   // and makes an onboarding link for it
   const accountLink = await stripe.accountLinks.create({
     account: `${account.id}`,
-    refresh_url: 'https://google.com',
-    return_url: 'https://google.com',
+    refresh_url: 'beta.lion.app',
+    return_url: 'beta.lion.app',
     type: 'account_onboarding',
     collect: 'eventually_due',
   });
